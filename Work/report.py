@@ -1,40 +1,23 @@
 # report.py
 #
 # Exercise 2.4
-import csv
+
+import fileparse
 
 
 def read_portfolio(filename):
-    """Converts a portfolio from csv file to dictionary"""
-    portfolio = []
-
-    with open(filename, 'rt') as f:
-        rows = csv.reader(f)
-        headers = next(rows)
-        for i, row in enumerate(rows, start=1):
-            record = dict(zip(headers, row))
-            try:
-
-                holding = {'name': record['name'], 'shares': int(
-                    record['shares']), 'price': float(record['price'])}
-                portfolio.append(holding)
-            except ValueError:
-                print(f"Row:{i} Couldn't convert:", row)
-
-    return portfolio
+    '''
+    Read a stock portfolio file into a list of dictionaries with keys
+    name, shares, and price.
+    '''
+    return fileparse.parse_csv(filename, select=['name', 'shares', 'price'], types=[str, int, float])
 
 
 def read_prices(filename):
-    """Reads prices into a dictionary"""
-    portfolio = {}
-
-    with open(filename, 'rt') as f:
-        rows = csv.reader(f)
-        for row in rows:
-            if row:
-                portfolio[row[0]] = float(row[1])
-
-    return portfolio
+    '''
+    Read a CSV file of price data into a dict mapping names to prices.
+    '''
+    return dict(fileparse.parse_csv(filename, types=[str, float], has_headers=False))
 
 
 def make_report(portfolio, prices):
@@ -46,13 +29,29 @@ def make_report(portfolio, prices):
     return table
 
 
-portfolio = read_portfolio('Data/portfoliodate.csv')
-prices = read_prices('Data/prices.csv')
-report = make_report(portfolio, prices)
+def print_report(report):
+    """Prints out an organized report"""
+    headers = ('Name', 'Shares', 'Price', 'Change')
+    print('%10s %10s %10s %10s' % headers)
+    print(('-' * 10 + ' ') * len(headers))
+    for row in report:
+        print('%10s %10d %10.2f %10.2f' % row)
 
 
-headers = ('Name', 'Shares', 'Price', 'Change')
-print('%10s %10s %10s %10s' % headers)
-print(('-' * 10 + ' ') * len(headers))
-for row in report:
-    print('%10s %10d %10.2f %10.2f' % row)
+def portfolio_report(portfolio_filename, prices_filename):
+    portfolio = read_portfolio(portfolio_filename)
+    prices = read_prices(prices_filename)
+    report = make_report(portfolio, prices)
+
+    print_report(report)
+
+
+def main(args):
+    if len(args) != 3:
+        raise SystemExit('Usage: %s portfile pricefile' % args[0])
+    portfolio_report(args[1], args[2])
+
+
+if __name__ == '__main__':
+    import sys
+    main(sys.argv)
