@@ -1,6 +1,10 @@
-class Stock:
+from typedproperty import String, Integer, Float
 
-    __slots__ = ('name', '_shares', 'price')
+
+class Stock:
+    name = String('name')
+    shares = Integer('shares')
+    price = Float('price')
 
     def __init__(self, name, shares, price):
         self.name = name
